@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>Welcome {{ name }}</h2>
+
+<h3>Monthly Budget</h3>
+<form method="POST" action="/set-budget">
+    <input type="number" step="0.01" name="budget"
+           placeholder="Enter monthly budget"
+           value="{{ monthly_budget or '' }}" required>
+    <button>Save Budget</button>
+</form>
+
+{% if monthly_budget %}
+<p>💰 Budget: ₹{{ monthly_budget }}</p>
+<p>📊 Spent this month: ₹{{ monthly_spent }}</p>
+
+{% if monthly_spent > monthly_budget %}
+<p class="danger">🚨 Budget exceeded!</p>
+{% elif monthly_spent > monthly_budget * 0.8 %}
+<p class="warning">⚠️ You’ve used over 80% of your budget</p>
+{% else %}
+<p class="safe">✅ Budget under control</p>
+{% endif %}
+{% endif %}
+
+<hr>
+
+<h3>Add Expense</h3>
+<form method="POST" action="/add-expense">
+    <input type="number" step="0.01" name="amount" placeholder="Amount" required>
+    <input name="category" placeholder="Category" required>
+    <input type="date" name="date" required>
+    <input name="description" placeholder="Description">
+    <button>Add</button>
+</form>
+
+<hr>
+
+<h3>Your Expenses</h3>
+<table>
+<tr>
+<th>Amount</th><th>Category</th><th>Date</th><th>Description</th>
+</tr>
+{% for e in expenses %}
+<tr>
+<td>{{ e[1] }}</td>
+<td>{{ e[2] }}</td>
+<td>{{ e[3] }}</td>
+<td>{{ e[4] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h3>Expense Analytics</h3>
+<canvas id="categoryChart"></canvas>
+<canvas id="monthlyChart"></canvas>
+
+<script>
+fetch("/chart-data")
+.then(res => res.json())
+.then(data => {
+    if (data.categories.length === 0) return;
+
+    new Chart(categoryChart, {
+        type: "pie",
+        data: {
+            labels: data.categories.map(i => i[0]),
+            datasets: [{ data: data.categories.map(i => i[1]) }]
+        }
+    });
+
+    new Chart(monthlyChart, {
+        type: "bar",
+        data: {
+            labels: data.months.map(i => i[0]),
+            datasets: [{ label: "Monthly Expenses", data: data.months.map(i => i[1]) }]
+        }
+    });
+});
+</script>
+
+<a href="/logout">Logout</a>
+
+</body>
+</html>
+
+

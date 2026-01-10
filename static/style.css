@@ -1,0 +1,41 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fb;
+    padding: 20px;
+}
+
+h2, h3 {
+    color: #333;
+}
+
+input, button {
+    padding: 8px;
+    margin: 5px;
+}
+
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+}
+
+table th {
+    background: #4f46e5;
+    color: white;
+}
+
+table th, table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.safe { color: green; font-weight: bold; }
+.warning { color: orange; font-weight: bold; }
+.danger { color: red; font-weight: bold; }

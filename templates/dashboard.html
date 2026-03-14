@@ -1,96 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Expense Dashboard</title>
+
     <link rel="stylesheet" href="/static/style.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
+
+<div class="container">
 
 <h2>Welcome {{ name }}</h2>
 
-<h3>Monthly Budget</h3>
+<div class="card">
+<h3>Financial Health</h3>
+{% if health_score %}
+<p><b>{{ health_score }}</b></p>
+{% else %}
+<p>No data yet</p>
+{% endif %}
+</div>
+
+<div class="card">
+<h3>Smart Budget Recommendation</h3>
+{% if recommended_budget %}
+<p>Suggested Monthly Budget: ₹{{ recommended_budget }}</p>
+{% else %}
+<p>Add expenses to get recommendation</p>
+{% endif %}
+</div>
+
+<div class="card">
+<h3>Spending Insights</h3>
+{% if insights %}
+<ul>
+{% for insight in insights %}
+<li>{{ insight }}</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No insights yet</p>
+{% endif %}
+</div>
+
+<div class="card">
+<h3>Set Monthly Budget</h3>
+
 <form method="POST" action="/set-budget">
-    <input type="number" step="0.01" name="budget"
-           placeholder="Enter monthly budget"
-           value="{{ monthly_budget or '' }}" required>
-    <button>Save Budget</button>
+<input type="number" step="0.01" name="budget" placeholder="Monthly Budget" required>
+<button>Save Budget</button>
 </form>
 
 {% if monthly_budget %}
 <p>💰 Budget: ₹{{ monthly_budget }}</p>
 <p>📊 Spent this month: ₹{{ monthly_spent }}</p>
+<p>💵 Available Budget: ₹{{ monthly_budget - monthly_spent }}</p>
 
 {% if monthly_spent > monthly_budget %}
 <p class="danger">🚨 Budget exceeded!</p>
+
 {% elif monthly_spent > monthly_budget * 0.8 %}
 <p class="warning">⚠️ You’ve used over 80% of your budget</p>
+
 {% else %}
 <p class="safe">✅ Budget under control</p>
 {% endif %}
-{% endif %}
 
-<hr>
+{% endif %}
+</div>
+
+<div class="card">
 
 <h3>Add Expense</h3>
+
 <form method="POST" action="/add-expense">
-    <input type="number" step="0.01" name="amount" placeholder="Amount" required>
-    <input name="category" placeholder="Category" required>
-    <input type="date" name="date" required>
-    <input name="description" placeholder="Description">
-    <button>Add</button>
+
+<input type="number" step="0.01" name="amount" placeholder="Amount" required>
+
+<input name="category" placeholder="Category" required>
+
+<input type="date" name="date" required>
+
+<input name="description" placeholder="Description">
+
+<button>Add</button>
+
 </form>
 
-<hr>
+</div>
+
+
+<div class="card">
 
 <h3>Your Expenses</h3>
+
 <table>
+
 <tr>
-<th>Amount</th><th>Category</th><th>Date</th><th>Description</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Date</th>
+<th>Description</th>
 </tr>
+
 {% for e in expenses %}
 <tr>
-<td>{{ e[1] }}</td>
+<td>₹{{ e[1] }}</td>
 <td>{{ e[2] }}</td>
 <td>{{ e[3] }}</td>
 <td>{{ e[4] }}</td>
 </tr>
 {% endfor %}
+
 </table>
 
-<hr>
+</div>
+
+
+<div class="card">
 
 <h3>Expense Analytics</h3>
-<canvas id="categoryChart"></canvas>
-<canvas id="monthlyChart"></canvas>
+
+<canvas id="categoryChart" height="200"></canvas>
+<canvas id="monthlyChart" height="200"></canvas>
+
+</div>
+
+
+<a class="logout" href="/logout">Logout</a>
+
+</div>
 
 <script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
 fetch("/chart-data")
 .then(res => res.json())
 .then(data => {
-    if (data.categories.length === 0) return;
 
-    new Chart(categoryChart, {
-        type: "pie",
-        data: {
-            labels: data.categories.map(i => i[0]),
-            datasets: [{ data: data.categories.map(i => i[1]) }]
-        }
-    });
+if (!data || data.categories.length === 0) return;
 
-    new Chart(monthlyChart, {
-        type: "bar",
-        data: {
-            labels: data.months.map(i => i[0]),
-            datasets: [{ label: "Monthly Expenses", data: data.months.map(i => i[1]) }]
-        }
-    });
+const categoryCanvas = document.getElementById("categoryChart");
+const monthlyCanvas = document.getElementById("monthlyChart");
+
+new Chart(categoryCanvas,{
+type:"pie",
+data:{
+labels:data.categories.map(i => i[0]),
+datasets:[{
+data:data.categories.map(i => i[1]),
+backgroundColor:[
+"#ff6fa5",
+"#ff9ec6",
+"#ffc2dd",
+"#ffd7ea",
+"#ffe8f3"
+]
+}]
+}
 });
-</script>
 
-<a href="/logout">Logout</a>
+new Chart(monthlyCanvas,{
+type:"bar",
+data:{
+labels:data.months.map(i => i[0]),
+datasets:[{
+label:"Monthly Expenses",
+data:data.months.map(i => i[1]),
+backgroundColor:"#ff6fa5"
+}]
+}
+});
+
+})
+.catch(err => console.error("Chart loading error:", err));
+
+});
+
+</script>
 
 </body>
 </html>
-
-
